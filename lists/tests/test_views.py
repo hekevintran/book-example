@@ -1,3 +1,4 @@
+from django.http import HttpRequest
 from django.test import TestCase
 from django.utils.html import escape
 
@@ -6,7 +7,12 @@ from lists.forms import (
     ExistingListItemForm, ItemForm,
 )
 from lists.models import Item, List
+from lists.views import new_list
 
+from django.template.loader import render_to_string
+from django.contrib.auth import get_user_model
+User = get_user_model()
+from unittest.mock import Mock, patch
 
 class HomePageTest(TestCase):
 
@@ -62,6 +68,40 @@ class NewListTest(TestCase):
         self.client.post('/lists/new', data={'text': ''})
         self.assertEqual(List.objects.count(), 0)
         self.assertEqual(Item.objects.count(), 0)
+
+
+    @patch('lists.views.List')
+    def test_list_owner_is_saved_if_user_is_authenticated(self, mockList):
+        mock_list = List.objects.create()
+        mock_list.save = Mock()
+        mockList.objects.create.return_value = mock_list
+        request = HttpRequest()
+        request.user = Mock()
+        request.user.is_authenticated.return_value = True
+        request.POST['text'] = 'new list item'
+
+        def check_owner_assigned():
+            self.assertEqual(mock_list.owner, request.user)
+        mock_list.save.side_effect = check_owner_assigned
+
+        new_list(request)
+
+        mock_list.save.assert_called_once_with()
+
+
+    @patch('lists.views.List')
+    def test_list_owner_is_not_saved_if_user_is_not_authenticated(self, mockList):
+        mock_list = List.objects.create()
+        mock_list.owner = None
+        mockList.objects.create.return_value = mock_list
+        request = HttpRequest()
+        request.user = Mock()
+        request.user.is_authenticated.return_value = False
+        request.POST['text'] = 'new list item'
+
+        new_list(request)
+
+        self.assertNotEqual(mock_list.owner, request.user)
 
 
 
@@ -166,10 +206,6 @@ class ListViewTest(TestCase):
         self.assertEqual(Item.objects.all().count(), 1)
 
 
-from django.template.loader import render_to_string
-from django.contrib.auth import get_user_model
-User = get_user_model()
-from unittest.mock import Mock, patch
 
 class MyListsTest(TestCase):
 
