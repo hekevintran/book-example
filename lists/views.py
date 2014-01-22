@@ -1,6 +1,7 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth import get_user_model
 User = get_user_model()
+from django.contrib.auth.models import AnonymousUser
 
 from lists.forms import ExistingListItemForm, ItemForm
 from lists.models import List
@@ -14,8 +15,9 @@ def new_list(request):
     form = ItemForm(data=request.POST)
     if form.is_valid():
         list_ = List.objects.create()
-        list_.owner = request.user
-        list_.save()
+        if not isinstance(request.user, AnonymousUser):
+            list_.owner = request.user
+            list_.save()
         form.save(for_list=list_)
         return redirect(list_)
     else:
