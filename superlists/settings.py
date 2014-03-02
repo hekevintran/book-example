@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'lists',
     'south',
     'accounts',
+    'functional_tests',
 )
 
 AUTH_USER_MODEL = 'accounts.User'
