@@ -45,6 +45,7 @@ class MyListsTest(FunctionalTest):
         # She decides to start another list, just to see
         self.browser.get(self.server_url)
         self.get_item_input_box().send_keys('Click cows\n')
+        self.check_for_row_in_list_table('1: Click cows')
         second_list_url = self.browser.current_url
 
         # Under "my lists", her new list appears
