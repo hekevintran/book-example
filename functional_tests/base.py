@@ -83,8 +83,9 @@ class FunctionalTest(LiveServerTestCase):
         while time.time() - start_time < timeout:
             try:
                 return function_with_assertion()
-            except (AssertionError, WebDriverException):
-                pass
+            except (AssertionError, WebDriverException) as e:
+                print('failed once with {}'.format(e))
+                time.sleep(0.1)
         # one more try, which will raise any errors if they are outstanding
         return function_with_assertion()
 
