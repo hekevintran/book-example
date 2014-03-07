@@ -9,7 +9,7 @@ import time
 from django.test import LiveServerTestCase
 from .server_tools import reset_database
 
-DEFAULT_WAIT = 3
+DEFAULT_WAIT = 10
 SCREEN_DUMP_LOCATION = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'screendumps')
 )
