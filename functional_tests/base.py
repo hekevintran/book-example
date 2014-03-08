@@ -70,7 +70,7 @@ class FunctionalTest(LiveServerTestCase):
         filename = self._get_filename() + '.png'
         print('screenshotting to', filename)
         self.browser.get_screenshot_as_file(filename)
-        pyscreenshot.grab_to_file('fullscreen_' + filename)
+        pyscreenshot.grab_to_file(filename.replace('.png', '.fullscreen.png'))
 
 
     def dump_html(self):
