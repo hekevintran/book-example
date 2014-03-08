@@ -41,13 +41,12 @@ class MyListsTest(FunctionalTest):
 
         # She sees that her list is in there, named according to its
         # first list item
-        self.wait_for(
-            lambda: self.browser.find_element_by_link_text('Reticulate splines')
-        )
-        self.browser.find_element_by_link_text('Reticulate splines').click()
-        self.wait_for(
-            lambda: self.assertEqual(self.browser.current_url, first_list_url)
-        )
+        def persistently_click_through_to():
+            if self.browser.find_element_by_link_text('Reticulate splines'):
+                self.browser.find_element_by_link_text('Reticulate splines').click()
+            time.sleep(0.2)
+            self.assertEqual(self.browser.current_url, first_list_url)
+        self.wait_for(persistently_click_through_to)
 
         # She decides to start another list, just to see
         self.browser.get(self.server_url)
