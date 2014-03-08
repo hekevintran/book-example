@@ -38,7 +38,7 @@ class FunctionalTest(LiveServerTestCase):
         if self.against_staging:
             reset_database(self.server_host)
 
-        self.browser = webdriver.PhantomJS()
+        self.browser = webdriver.Firefox()
         self.browser.implicitly_wait(DEFAULT_WAIT)
 
     def tearDown(self):
