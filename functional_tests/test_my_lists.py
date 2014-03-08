@@ -1,4 +1,5 @@
 from django.conf import settings
+import time
 from .base import FunctionalTest
 from .server_tools import create_session_on_server
 from .management.commands.create_session import create_pre_authenticated_session
@@ -38,6 +39,9 @@ class MyListsTest(FunctionalTest):
         # She sees that her list is in there, named according to its
         # first list item
         self.browser.find_element_by_link_text('Reticulate splines').click()
+        time.sleep(1)
+        if self.browser.find_elements_by_link_text('Reticulate splines'):
+            self.browser.find_element_by_link_text('Reticulate splines').click()
         self.wait_for(
             lambda: self.assertEqual(self.browser.current_url, first_list_url)
         )
@@ -51,6 +55,9 @@ class MyListsTest(FunctionalTest):
         # Under "my lists", her new list appears
         self.browser.find_element_by_link_text('My lists').click()
         self.browser.find_element_by_link_text('Click cows').click()
+        time.sleep(1)
+        if self.browser.find_elements_by_link_text('Click cows'):
+            self.browser.find_element_by_link_text('Click cows').click()
         self.assertEqual(self.browser.current_url, second_list_url)
 
         # She logs out.  The "My lists" option disappears
