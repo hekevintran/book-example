@@ -1,5 +1,4 @@
 from django.conf import settings
-import time
 from .base import FunctionalTest
 from .server_tools import create_session_on_server
 from .management.commands.create_session import create_pre_authenticated_session
@@ -34,42 +33,29 @@ class MyListsTest(FunctionalTest):
         first_list_url = self.browser.current_url
 
         # She notices a "My lists" link, for the first time.
-        self.wait_for(
-            lambda: self.browser.find_element_by_link_text('My lists')
-        )
         self.browser.find_element_by_link_text('My lists').click()
 
         # She sees that her list is in there, named according to its
         # first list item
-        def persistently_click_through_to():
-            if self.browser.find_element_by_link_text('Reticulate splines'):
-                self.browser.find_element_by_link_text('Reticulate splines').click()
-            time.sleep(0.2)
-            self.assertEqual(self.browser.current_url, first_list_url)
-        self.wait_for(persistently_click_through_to)
+        self.browser.find_element_by_link_text('Reticulate splines').click()
+        self.wait_for(
+            lambda: self.assertEqual(self.browser.current_url, first_list_url)
+        )
 
         # She decides to start another list, just to see
         self.browser.get(self.server_url)
         self.get_item_input_box().send_keys('Click cows\n')
-        self.check_for_row_in_list_table('1: Click cows')
         second_list_url = self.browser.current_url
 
         # Under "my lists", her new list appears
         self.browser.find_element_by_link_text('My lists').click()
-        self.wait_for(
-            lambda: self.browser.find_element_by_link_text('Click cows')
-        )
         self.browser.find_element_by_link_text('Click cows').click()
-        self.wait_for(
-            lambda: self.assertEqual(self.browser.current_url, second_list_url)
-        )
+        self.assertEqual(self.browser.current_url, second_list_url)
 
         # She logs out.  The "My lists" option disappears
         self.browser.find_element_by_id('id_logout').click()
-        self.wait_for(
-            lambda: self.assertEqual(
-                self.browser.find_elements_by_link_text('My lists'),
-                []
-            )
+        self.assertEqual(
+            self.browser.find_elements_by_link_text('My lists'),
+            []
         )
 

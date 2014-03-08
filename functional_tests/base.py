@@ -9,7 +9,7 @@ import time
 from django.test import LiveServerTestCase
 from .server_tools import reset_database
 
-DEFAULT_WAIT = 20
+DEFAULT_WAIT = 5
 SCREEN_DUMP_LOCATION = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'screendumps')
 )
@@ -82,12 +82,10 @@ class FunctionalTest(LiveServerTestCase):
         start_time = time.time()
         while time.time() - start_time < timeout:
             try:
+                time.sleep(0.2)  # sleep first to let things settle
                 return function_with_assertion()
-            except (AssertionError, WebDriverException) as e:
-                print('failed once with {} at {}'.format(
-                    e, datetime.utcnow())
-                )
-                time.sleep(0.1)
+            except (AssertionError, WebDriverException):
+                pass
         # one more try, which will raise any errors if they are outstanding
         return function_with_assertion()
 
