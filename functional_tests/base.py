@@ -5,7 +5,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 import os
 import sys
 import time
-import pyscreenshot
 
 from django.test import LiveServerTestCase
 from .server_tools import reset_database
@@ -70,7 +69,6 @@ class FunctionalTest(LiveServerTestCase):
         filename = self._get_filename() + '.png'
         print('screenshotting to', filename)
         self.browser.get_screenshot_as_file(filename)
-        pyscreenshot.grab_to_file(filename.replace('.png', '.fullscreen.png'))
 
 
     def dump_html(self):
