@@ -28,6 +28,10 @@ def view_list(request, list_id):
     return render(request, 'list.html', {'list': list_, "form": form})
 
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 def my_lists(request, email):
-    return render(request, 'my_lists.html')
+    owner = User.objects.get(email=email)
+    return render(request, 'my_lists.html', {'owner': owner})
 

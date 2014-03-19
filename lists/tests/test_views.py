@@ -166,10 +166,27 @@ class ListViewTest(TestCase):
         self.assertEqual(Item.objects.all().count(), 1)
 
 
+from django.template.loader import render_to_string
+from django.contrib.auth import get_user_model
+User = get_user_model()
+from unittest.mock import Mock, patch
 
 class MyListsTest(TestCase):
 
-    def test_my_lists_url_renders_my_lists_template(self):
+    @patch('lists.views.User.objects.get')
+    def test_my_lists_url_renders_my_lists_template(self, mock_get_user):
         response = self.client.get('/lists/users/a@b.com/')
         self.assertTemplateUsed(response, 'my_lists.html')
+
+    def test_my_lists_template_shows_owners_lists_by_name(self):
+        owner = Mock(my_lists=[Mock(name='first list'), Mock(name='second list')])
+        html = render_to_string('my_lists.html', {'owner': owner})
+        self.assertIn('first list', html)
+        self.assertIn('second list', html)
+
+    @patch('lists.views.User.objects.get')
+    def test_correct_owner_passed_to_template(self, mock_get_user):
+        response = self.client.get('/lists/users/a@b.com/')
+        self.assertEqual(response.context['owner'], mock_get_user.return_value)
+        mock_get_user.assert_called_once_with(email='a@b.com')
 
