@@ -27,67 +27,50 @@ class HomePageTest(TestCase):
 
 
 
+@patch('lists.views.ItemForm')
 class NewListTest(TestCase):
+    url = '/lists/new'
+    default_data = {'text': 'a new list item'}
 
-    def test_saving_a_POST_request(self):
-        self.client.post(
-            '/lists/new',
-            data={'text': 'A new list item'}
-        )
-        self.assertEqual(Item.objects.count(), 1)
-        new_item = Item.objects.first()
-        self.assertEqual(new_item.text, 'A new list item')
+    def setUp(self):
+        self.request = HttpRequest()
+        self.request.POST.update(self.default_data)
+        self.request.user = Mock()
 
-
-    def test_redirects_after_POST(self):
-        response = self.client.post(
-            '/lists/new',
-            data={'text': 'A new list item'}
-        )
-        new_list = List.objects.first()
-        self.assertRedirects(response, '/lists/%d/' % (new_list.id,))
+    def post_with_client(self):
+        return self.client.post(self.url, data=self.default_data)
 
 
-    def test_for_invalid_input_renders_home_template(self):
-        response = self.client.post('/lists/new', data={'text': ''})
+    def test_saving_a_POST_request(self, mockItemForm):
+        new_list(self.request)
+        mockItemForm.assert_called_once_with(data=self.request.POST)
+
+
+    def test_redirects_after_POST(self, mockItemForm):
+        List.objects.create()
+        right_list = List.objects.create()
+        mockItemForm.return_value.save.return_value = right_list
+
+        response = new_list(self.request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, right_list.get_absolute_url())
+
+
+    def test_for_invalid_input_renders_home_template_with_form(self, mockItemForm):
+        mockItemForm.return_value.is_valid.return_value = False
+        response = self.post_with_client()
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'home.html')
+        self.assertEqual(response.context['form'], mockItemForm.return_value)
 
 
-    def test_validation_errors_are_shown_on_home_page(self):
-        response = self.client.post('/lists/new', data={'text': ''})
-        self.assertContains(response, escape(EMPTY_LIST_ERROR))
+    def test_passes_request_user_to_ItemForm_save(self, mockItemForm):
+        mock_form = mockItemForm.return_value
 
+        new_list(self.request)
 
-    def test_for_invalid_input_passes_form_to_template(self):
-        response = self.client.post('/lists/new', data={'text': ''})
-        self.assertIsInstance(response.context['form'], ItemForm)
-
-
-    def test_invalid_list_items_arent_saved(self):
-        self.client.post('/lists/new', data={'text': ''})
-        self.assertEqual(List.objects.count(), 0)
-        self.assertEqual(Item.objects.count(), 0)
-
-
-    @patch('lists.views.List')
-    def test_list_owner_is_saved_if_user_is_authenticated(self, mockList):
-        list_ = List()
-        list_.save = Mock()
-        mockList.return_value = list_
-        request = HttpRequest()
-        request.user = Mock()
-        request.user.is_authenticated.return_value = True
-        request.POST['text'] = 'new list item'
-
-        def check_owner_assigned():
-            self.assertEqual(list_.owner, request.user)
-            List.save(list_)
-        list_.save.side_effect = check_owner_assigned
-
-        new_list(request)
-
-        list_.save.assert_called_once_with()
+        mock_form.save.assert_called_once_with(owner=self.request.user)
 
 
 
