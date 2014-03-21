@@ -72,36 +72,22 @@ class NewListTest(TestCase):
 
     @patch('lists.views.List')
     def test_list_owner_is_saved_if_user_is_authenticated(self, mockList):
-        mock_list = List.objects.create()
-        mock_list.save = Mock()
-        mockList.objects.create.return_value = mock_list
+        list_ = List()
+        list_.save = Mock()
+        mockList.return_value = list_
         request = HttpRequest()
         request.user = Mock()
         request.user.is_authenticated.return_value = True
         request.POST['text'] = 'new list item'
 
         def check_owner_assigned():
-            self.assertEqual(mock_list.owner, request.user)
-        mock_list.save.side_effect = check_owner_assigned
+            self.assertEqual(list_.owner, request.user)
+            List.save(list_)
+        list_.save.side_effect = check_owner_assigned
 
         new_list(request)
 
-        mock_list.save.assert_called_once_with()
-
-
-    @patch('lists.views.List')
-    def test_list_owner_is_not_saved_if_user_is_not_authenticated(self, mockList):
-        mock_list = List.objects.create()
-        mock_list.owner = None
-        mockList.objects.create.return_value = mock_list
-        request = HttpRequest()
-        request.user = Mock()
-        request.user.is_authenticated.return_value = False
-        request.POST['text'] = 'new list item'
-
-        new_list(request)
-
-        self.assertNotEqual(mock_list.owner, request.user)
+        list_.save.assert_called_once_with()
 
 
 
