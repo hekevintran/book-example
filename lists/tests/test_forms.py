@@ -5,6 +5,7 @@ from lists.forms import (
     ExistingListItemForm, ItemForm
 )
 from lists.models import Item, List
+from unittest.mock import Mock, patch
 
 
 class ItemFormTest(TestCase):
@@ -21,13 +22,42 @@ class ItemFormTest(TestCase):
         self.assertEqual(form.errors['text'], [EMPTY_LIST_ERROR])
 
 
-    def test_form_save_handles_saving_to_a_list(self):
-        list_ = List.objects.create()
+    def test_form_save_creates_new_item_and_parent_list(self):
+        user = Mock()
         form = ItemForm(data={'text': 'do me'})
-        new_item = form.save(for_list=list_)
+        new_item = form.save(owner=user)
         self.assertEqual(new_item, Item.objects.first())
         self.assertEqual(new_item.text, 'do me')
-        self.assertEqual(new_item.list, list_)
+        self.assertEqual(new_item.list, List.objects.first())
+
+
+    @patch('lists.forms.List')
+    def test_form_save_saves_owner_if_user_is_logged_in(self, mockList):
+        user = Mock()
+        user.is_authenticated.return_value = True
+        list_ = List.objects.create()
+        list_.owner = None
+        mockList.return_value = list_
+
+        form = ItemForm(data={'text': 'do me'})
+        form.save(owner=user)
+
+        self.assertEqual(list_.owner, user)
+
+
+    @patch('lists.forms.List')
+    def test_form_save_does_not_save_owner_if_user_not_logged_in(self, mockList):
+        user = Mock()
+        user.is_authenticated.return_value = False
+        list_ = List.objects.create()
+        list_.owner = None
+        mockList.return_value = list_
+
+        form = ItemForm(data={'text': 'do me'})
+        form.save(owner=user)
+
+        self.assertIsNone(list_.owner)
+
 
 
 
