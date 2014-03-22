@@ -60,10 +60,17 @@ class ItemModelTest(TestCase):
         self.assertEqual(str(item), 'some text')
 
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class ListModelTest(TestCase):
 
     def test_get_absolute_url(self):
         list_ = List.objects.create()
         self.assertEqual(list_.get_absolute_url(), '/lists/%d/' % (list_.id,))
+
+
+    def test_list_can_have_optional_owner(self):
+        List.objects.create(owner=User.objects.create())
+        List.objects.create() # should not raise
 
