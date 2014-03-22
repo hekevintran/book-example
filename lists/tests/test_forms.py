@@ -6,6 +6,8 @@ from lists.forms import (
 )
 from lists.models import Item, List
 from unittest.mock import Mock, patch
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 class ItemFormTest(TestCase):
@@ -23,7 +25,7 @@ class ItemFormTest(TestCase):
 
 
     def test_form_save_creates_new_item_and_parent_list(self):
-        user = Mock()
+        user = Mock(is_authenticated=lambda: False)
         form = ItemForm(data={'text': 'do me'})
         new_item = form.save(owner=user)
         self.assertEqual(new_item, Item.objects.first())
@@ -33,8 +35,7 @@ class ItemFormTest(TestCase):
 
     @patch('lists.forms.List')
     def test_form_save_saves_owner_if_user_is_logged_in(self, mockList):
-        user = Mock()
-        user.is_authenticated.return_value = True
+        user = User.objects.create()
         list_ = List.objects.create()
         list_.owner = None
         mockList.return_value = list_
@@ -47,8 +48,7 @@ class ItemFormTest(TestCase):
 
     @patch('lists.forms.List')
     def test_form_save_does_not_save_owner_if_user_not_logged_in(self, mockList):
-        user = Mock()
-        user.is_authenticated.return_value = False
+        user = Mock(is_authenticated=lambda: False)
         list_ = List.objects.create()
         list_.owner = None
         mockList.return_value = list_
