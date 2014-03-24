@@ -12,7 +12,7 @@ from lists.forms import (
     ExistingListItemForm, ItemForm,
 )
 from lists.models import Item, List
-from lists.views import new_list, new_list2
+from lists.views import new_list
 
 
 class HomePageTest(TestCase):
@@ -91,21 +91,21 @@ class NewListViewUnitTest(unittest.TestCase): #<1>
 
 
     def test_passes_POST_data_to_NewListForm(self, mockNewListForm):
-        new_list2(self.request)
+        new_list(self.request)
         mockNewListForm.assert_called_once_with(data=self.request.POST)  #<4>
 
 
     def test_saves_form_with_owner_if_form_valid(self, mockItemForm):
         mock_form = mockItemForm.return_value
         mock_form.is_valid.return_value = True
-        new_list2(self.request)
+        new_list(self.request)
         mock_form.save.assert_called_once_with(owner=self.request.user)
 
 
     def test_does_not_save_if_form_invalid(self, mockItemForm):
         mock_form = mockItemForm.return_value
         mock_form.is_valid.return_value = False
-        new_list2(self.request)
+        new_list(self.request)
         self.assertFalse(mock_form.save.called)
 
 
@@ -116,7 +116,7 @@ class NewListViewUnitTest(unittest.TestCase): #<1>
         mock_form = mockItemForm.return_value
         mock_form.is_valid.return_value = True
 
-        response = new_list2(self.request)
+        response = new_list(self.request)
 
         self.assertEqual(response, mock_redirect.return_value)
         mock_redirect.assert_called_once_with(mock_form.save.return_value)
@@ -129,7 +129,7 @@ class NewListViewUnitTest(unittest.TestCase): #<1>
         mock_form = mockItemForm.return_value
         mock_form.is_valid.return_value = False
 
-        response = new_list2(self.request)
+        response = new_list(self.request)
 
         self.assertEqual(response, mock_render.return_value)
         mock_render.asssert_called_once_with(
