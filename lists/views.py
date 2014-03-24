@@ -14,16 +14,14 @@ def new_list(request):
     form = ItemForm(data=request.POST)
     if form.is_valid():
         list_ = List()
-        list_.owner = request.user
+        if request.user.is_authenticated():
+            list_.owner = request.user
         list_.save()
         form.save(for_list=list_)
         return redirect(list_)
     else:
         return render(request, 'home.html', {"form": form})
 
-
-class NewListForm(object):
-    pass
 
 def new_list2(request):
     form = NewListForm(data=request.POST)
