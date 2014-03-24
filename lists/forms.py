@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from lists.models import Item
+from lists.models import Item, List
 
 DUPLICATE_ITEM_ERROR = "You've already got this in your list"
 EMPTY_LIST_ERROR = "You can't have an empty list item"
@@ -27,6 +27,20 @@ class ItemForm(forms.models.ModelForm):
     def save(self, for_list):
         self.instance.list = for_list
         return super().save()
+
+
+class NewListForm(ItemForm):
+
+    def save(self, owner):
+        list_ = List()
+        if owner.is_authenticated():
+            list_.owner = owner
+        list_.save()
+        item = Item()
+        item.list = list_
+        item.text = self.cleaned_data['text']
+        item.save()
+
 
 
 class ExistingListItemForm(ItemForm):
